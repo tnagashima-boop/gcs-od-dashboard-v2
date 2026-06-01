@@ -1,0 +1,45 @@
+# .github/workflows/update_dashboard.yml
+# このファイルを GitHubリポジトリの .github/workflows/ フォルダに置いてください
+
+name: 📚 OD Research Dashboard 週次更新
+
+on:
+  # 毎週月曜 朝8時 (JST = UTC+9 → UTC 23:00 日曜)
+  schedule:
+    - cron: '0 23 * * 0'
+
+  # 手動実行ボタンも追加
+  workflow_dispatch:
+
+jobs:
+  update-dashboard:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # index.html をコミット・プッシュするために必要
+
+    steps:
+      - name: リポジトリをチェックアウト
+        uses: actions/checkout@v4
+
+      - name: Python 3.11 セットアップ
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 依存ライブラリをインストール
+        run: |
+          pip install anthropic requests
+
+      - name: ダッシュボードを更新
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          python update_dashboard.py
+
+      - name: 変更をコミット・プッシュ
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Actions"
+          git add index.html paper_cache.json
+          git diff --staged --quiet || git commit -m "📚 OD Dashboard 週次更新: $(date +'%Y/%m/%d')"
+          git push
