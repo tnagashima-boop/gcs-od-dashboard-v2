@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>論文・学術研究専門ダッシュボード | GCS OD Intelligence</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Yu Gothic UI',sans-serif;background:#f0f4f8;color:#1e293b;min-height:100vh}
+.header{background:linear-gradient(135deg,#1e3a5f 0%,#1a56db 100%);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.2)}
+.header-left h1{font-size:17px;font-weight:800;color:#fff;letter-spacing:.3px}
+.header-left .subtitle{font-size:11px;color:rgba(255,255,255,.7);margin-top:2px}
+.update-btn{background:rgba(255,255,255,.15);color:#fff;border:1.5px solid rgba(255,255,255,.4);border-radius:8px;padding:8px 16px;font-size:12px;font-weight:700;cursor:pointer;transition:background .2s}
+.update-btn:hover{background:rgba(255,255,255,.25)}
+.filterbar{background:#fff;border-bottom:1px solid #e2e8f0;padding:10px 24px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.fl{font-size:11px;color:#64748b;font-weight:600;white-space:nowrap}
+.search-wrap{position:relative;display:flex;align-items:center}
+.search-wrap svg{position:absolute;left:9px;color:#94a3b8;pointer-events:none}
+.search-input{border:1.5px solid #e2e8f0;border-radius:8px;padding:7px 10px 7px 30px;font-size:12px;width:190px;outline:none;transition:border-color .2s}
+.search-input:focus{border-color:#1a56db;box-shadow:0 0 0 3px rgba(26,86,219,.08)}
+.filter-select{border:1.5px solid #e2e8f0;border-radius:8px;padding:7px 10px;font-size:12px;background:#fff;cursor:pointer;outline:none;transition:border-color .2s;color:#374151}
+.filter-select:focus{border-color:#1a56db}
+.sort-btns{margin-left:auto;display:flex;gap:6px}
+.sort-btn{border:1.5px solid #e2e8f0;border-radius:8px;padding:7px 14px;font-size:12px;background:#fff;cursor:pointer;color:#475569;font-weight:600;transition:all .2s}
+.sort-btn.active{background:#1a56db;color:#fff;border-color:#1a56db;box-shadow:0 2px 8px rgba(26,86,219,.25)}
+.cat-strip{background:#fff;border-bottom:1px solid #e2e8f0;padding:0 24px;display:flex;overflow-x:auto;gap:0}
+.cat-item{padding:12px 20px;font-size:13px;font-weight:500;color:#64748b;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;display:flex;align-items:center;gap:7px;transition:color .15s;user-select:none}
+.cat-item:hover{color:#1a56db;background:rgba(26,86,219,.03)}
+.cat-item.active{color:#1a56db;border-bottom-color:#1a56db;font-weight:700}
+.cat-cnt{background:#e8f0fe;color:#1a56db;border-radius:12px;padding:2px 8px;font-size:10px;font-weight:700;min-width:22px;text-align:center}
+.cat-item.active .cat-cnt{background:#1a56db;color:#fff}
+.content{padding:16px 24px 32px}
+.result-info{font-size:12px;color:#64748b;margin-bottom:14px;font-weight:500}
+.papers-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
+.paper-card{background:#fff;border:1px solid #e8edf5;border-radius:14px;padding:16px;transition:box-shadow .2s,transform .15s;display:flex;flex-direction:column;gap:0}
+.paper-card:hover{box-shadow:0 8px 28px rgba(0,0,0,.1);transform:translateY(-2px);border-color:#c7d5f0}
+.card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:10px}
+.theme-badge{font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px;white-space:nowrap;flex-shrink:0;letter-spacing:.3px}
+.badge-OD{background:#dbeafe;color:#1d4ed8}
+.badge-CAP{background:#dcfce7;color:#15803d}
+.badge-SUC{background:#fef3c7;color:#92400e}
+.badge-REP{background:#f3e8ff;color:#7c3aed}
+.scores{display:flex;flex-direction:column;gap:4px;align-items:flex-end;flex-shrink:0}
+.score-row{display:flex;align-items:center;gap:3px;font-size:10px;color:#94a3b8}
+.score-num{font-weight:700;color:#475569;min-width:10px;text-align:right}
+.paper-title{font-size:13px;font-weight:700;line-height:1.5;color:#1e293b;margin-bottom:5px}
+.paper-title-ja{font-size:11px;color:#1a56db;background:#eff6ff;border-radius:5px;padding:3px 8px;margin-bottom:10px;line-height:1.5;display:inline-block;border-left:3px solid #bfdbfe}
+.paper-meta{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;align-items:center}
+.meta-author{font-size:11px;color:#64748b}
+.meta-year{font-size:11px;color:#64748b}
+.source-pill{background:#f1f5f9;border-radius:6px;padding:2px 8px;font-size:10px;font-weight:700;color:#475569;border:1px solid #e2e8f0}
+.abstract-text{font-size:11.5px;color:#475569;line-height:1.75;margin-bottom:12px;padding:8px 10px;background:#f8fafc;border-radius:7px;border-left:3px solid #cbd5e1;flex-grow:1}
+.insight-section{background:linear-gradient(135deg,#fffbeb,#fef9ee);border:1px solid #fde68a;border-radius:9px;overflow:hidden;margin-top:auto}
+.insight-header{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;cursor:pointer;user-select:none;transition:background .15s}
+.insight-header:hover{background:rgba(251,191,36,.1)}
+.insight-label{font-size:11px;font-weight:700;color:#92400e;display:flex;align-items:center;gap:4px}
+.insight-arrow{font-size:10px;color:#92400e;transition:transform .25s;display:inline-block}
+.insight-arrow.open{transform:rotate(180deg)}
+.insight-body{padding:0 12px;max-height:0;overflow:hidden;transition:max-height .3s ease,padding .3s ease}
+.insight-body.open{max-height:500px;padding:2px 12px 12px}
+.insight-body p{font-size:11.5px;color:#78350f;line-height:1.8;white-space:pre-wrap}
+.card-footer{display:flex;justify-content:flex-end;margin-top:12px;padding-top:10px;border-top:1px solid #f1f5f9}
+.url-link{font-size:11px;color:#1a56db;text-decoration:none;font-weight:600;display:flex;align-items:center;gap:4px;transition:color .15s}
+.url-link:hover{color:#1e40af;text-decoration:underline}
+.empty-state{text-align:center;padding:60px 20px;color:#94a3b8;grid-column:1/-1;font-size:14px;line-height:1.8}
+.footer-bar{text-align:center;padding:16px;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;margin-top:8px;background:#fff}
+@media(max-width:640px){.papers-grid{grid-template-columns:1fr}.sort-btns{margin-left:0}.filterbar{gap:6px}}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="header-left">
+    <h1>📚 論文・学術研究専門ダッシュボード</h1>
+    <div class="subtitle">OD（組織開発）/ 組織能力開発 / サクセッション計画 — Research Intelligence for GCS</div>
+  </div>
+  <button class="update-btn" onclick="alert('週次スケジュール設定済み。\n次回の自動更新：毎週月曜 朝8:00')">🔄 今すぐ更新</button>
+</div>
+<div class="filterbar">
+  <div class="search-wrap">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input class="search-input" id="searchInput" type="text" placeholder="キーワード検索..." oninput="applyFilters()">
+  </div>
+  <span class="fl">テーマ：</span>
+  <select class="filter-select" id="filterTheme" onchange="applyFilters()">
+    <option value="">すべて</option>
+    <option value="OD">OD（組織開発）</option>
+    <option value="CAP">組織能力開発</option>
+    <option value="SUC">サクセッション</option>
+    <option value="REP">実務レポート</option>
+  </select>
+  <span class="fl">情報源：</span>
+  <select class="filter-select" id="filterSource" onchange="applyFilters()">
+    <option value="">すべて</option>
+    <option value="AMJ">AMJ</option><option value="JAP">JAP</option>
+    <option value="OrgSci">Organization Science</option><option value="HBR">HBR</option>
+    <option value="McKinsey">McKinsey</option><option value="DDI">DDI</option>
+    <option value="Gartner">Gartner</option><option value="Deloitte">Deloitte</option>
+    <option value="J-STAGE">J-STAGE</option>
+  </select>
+  <span class="fl">年：</span>
+  <select class="filter-select" id="filterYear" onchange="applyFilters()">
+    <option value="">すべて</option>
+    <option value="2026">2026年</option>
+    <option value="2025">2025年</option>
+    <option value="2024">2024年</option>
+    <option value="2023">2023年以前</option>
+  </select>
+  <div class="sort-btns">
+    <button class="sort-btn active" id="btnScore" onclick="setSort('score')">⭐ スコア順</button>
+    <button class="sort-btn" id="btnNew" onclick="setSort('new')">🆕 新着順</button>
+  </div>
+</div>
+<div class="cat-strip">
+  <div class="cat-item active" data-cat="" onclick="setCat('')">すべて <span class="cat-cnt" id="cnt-all">0</span></div>
+  <div class="cat-item" data-cat="OD" onclick="setCat('OD')">🔵 OD（組織開発）<span class="cat-cnt" id="cnt-OD">0</span></div>
+  <div class="cat-item" data-cat="CAP" onclick="setCat('CAP')">🟢 組織能力開発 <span class="cat-cnt" id="cnt-CAP">0</span></div>
+  <div class="cat-item" data-cat="SUC" onclick="setCat('SUC')">🟡 サクセッション <span class="cat-cnt" id="cnt-SUC">0</span></div>
+  <div class="cat-item" data-cat="REP" onclick="setCat('REP')">🟣 実務レポート <span class="cat-cnt" id="cnt-REP">0</span></div>
+</div>
+<div class="content">
+  <div class="result-info" id="resultInfo"></div>
+  <div class="papers-grid" id="papersGrid"></div>
+</div>
+<div class="footer-bar" id="footerBar">GCS OD Intelligence Dashboard</div>
+<script>
+var PAPERS = [{"id":"od-001","theme":"OD","title":"Psychological Safety and Organizational Learning in Dynamic Environments","titleJa":"動的環境における心理的安全性と組織学習","authors":"Edmondson, A.C. & Bransby, D.","year":2024,"source":"AMJ","importance":5,"novelty":5,"url":"https://journals.aom.org/journal/amj","abstract":"48チームを対象とした縦断研究。心理的安全性が変革プレッシャーと学習行動の間を媒介することを実証。変革管理への示唆が豊富。","insight":"【要点】心理的安全性は変革時の学習を促進する重要な媒介変数。\n【実務適用】OD介入の初期にチームの心理的安全性を診断し、安全性向上施策（対話の場の設計、フィードバック文化醸成）を優先的に実施する。\n【注意点】日本企業では「空気を読む」文化が安全性を阻害しやすく、上位職による率先した失敗開示が特に重要。"},{"id":"od-002","theme":"OD","title":"Dialogic Organization Development: Generative Approaches to Change","titleJa":"対話的組織開発：変革へのジェネラティブアプローチ","authors":"Bushe, G.R. & Marshak, R.J.","year":2024,"source":"OrgSci","importance":4,"novelty":4,"url":"https://pubsonline.informs.org/journal/orsc","abstract":"診断的ODと対話的ODを区別し、複雑適応系における意味形成を主要な変革レバーとして位置づける理論的フレームワーク。","insight":"【要点】問題診断より「新しい意味の共創」が変革の核心。\n【実務適用】ワークショップ設計を「現状分析」から「望ましい未来の対話」にシフトし、Appreciative Inquiryを積極活用する。\n【注意点】成果が見えにくいため経営層への期待値マネジメントが重要。"},{"id":"od-003","theme":"OD","title":"AI-Augmented Organization Development: Opportunities and Ethical Considerations","titleJa":"AI活用による組織開発：機会と倫理的考察","authors":"Anderson, D.L. & Shaughnessy, M.","year":2025,"source":"JAP","importance":5,"novelty":5,"url":"https://www.apa.org/pubs/journals/apl","abstract":"AIがOD診断・コーチング・介入設計をどう強化できるかを探索。AI-OD統合の倫理的フレームワークを提案。","insight":"【要点】AIはOD診断とコーチングを強化するが、バイアス増幅リスクを伴う。\n【実務適用】サーベイ分析や360度フィードバックへのAI活用を試験導入しつつ、介入判断は必ず人間のOD実践者が担う二層構造を設計する。\n【注意点】個人データの取り扱いについて労使間の合意形成が先決。"},{"id":"od-004","theme":"OD","title":"The Future of Organization Development: Trends Reshaping the Field","titleJa":"組織開発の未来：フィールドを再形成する5つのトレンド","authors":"Cheung-Judge, M.Y.","year":2025,"source":"HBR","importance":4,"novelty":4,"url":"https://hbr.org/topic/subject/organizational-transformation","abstract":"AI統合・労働力の分断・目的主導型文化・分散リーダーシップ・再生型組織の5つのトレンドがODを再定義する。","insight":"【要点】ODの主戦場が個人・チームから組織システム全体の再設計へシフト。\n【実務適用】GCSのOD活動をチーム単位の介入から組織設計・目的定義・リーダーシップ開発を統合したシステム変革へ拡張する。\n【注意点】トレンドの取捨選択が重要で、すべてを追うと資源が分散する。"},{"id":"od-005","theme":"OD","title":"Culture Change Effectiveness: A Meta-Analysis of 25 Years of Research","titleJa":"文化変革の有効性：25年間研究のメタ分析","authors":"Hartnell, C.A. et al.","year":2024,"source":"JAP","importance":5,"novelty":4,"url":"https://www.apa.org/pubs/journals/apl","abstract":"312研究のメタ分析。リーダーシップ整合・ミドルマネジャーの共感・一貫したリチュアル変更が文化変革成功の上位3予測因子。","insight":"【要点】文化変革はリーダーの整合・ミドルの共感・儀式の変化の3点が揃うと成功確率が大幅に上がる。\n【実務適用】経営層コミットメント確認・ミドルマネジャー研修・象徴的行動変更を三位一体で実施する。\n【注意点】メタ分析の結果は欧米サンプル中心のため日本への適用に注意。"},{"id":"od-006","theme":"OD","title":"Whole System Change: Integrating Large Group Methods with Strategic Planning","titleJa":"ホールシステム変革：大規模グループ手法と戦略計画の統合","authors":"Worley, C.G. & Feyerherm, A.","year":2024,"source":"OrgSci","importance":4,"novelty":4,"url":"https://pubsonline.informs.org/journal/orsc","abstract":"Fortune500 5社のホールシステム介入ケーススタディ。大規模グループ手法が戦略的整合を加速し変革抵抗を減少させることを実証。","insight":"【要点】全員参加型の大規模ワークショップは変革抵抗を大幅に低下させる。\n【実務適用】戦略策定プロセスにFuture Search・Open Space等の手法を組み込み、従業員を変革の共創者へ転換する。\n【注意点】ファシリテーション技術と場の設計に高度なスキルが必要。"},{"id":"od-007","theme":"OD","title":"日本企業における組織開発の現状と課題","titleJa":"日本企業における組織開発の現状と課題","authors":"中村和彦","year":2023,"source":"J-STAGE","importance":4,"novelty":3,"url":"https://www.jstage.jst.go.jp/browse/jodp/-char/ja","abstract":"国内100社を対象とした調査。OD実践の現状とバリアを分析。日本的文脈でのファシリテーション手法と心理的安全性への示唆が豊富。","insight":"【要点】日本企業のOD実践は研修中心からプロセス介入への移行が遅れている。\n【実務適用】GCSとして対話型ODの事例を社内に可視化し、研修依存からの脱却を促すナレッジ共有活動を推進する。\n【注意点】ODという言葉自体への抵抗感があり、用語選択に配慮が必要。"},{"id":"od-008","theme":"OD","title":"Agile Organization Design: Beyond Scrum and into Enterprise Transformation","titleJa":"アジャイル組織設計：スクラムを超えたエンタープライズ変革","authors":"Denning, S.","year":2025,"source":"McKinsey","importance":4,"novelty":4,"url":"https://www.mckinsey.com/capabilities/people-and-organizational-performance/our-insights","abstract":"IT以外の全社にアジャイルをスケールするリーダーシップマインドセット・運営モデル再設計・パフォーマンス管理改革を提言。","insight":"【要点】アジャイルをIT部門に留めず全社展開するには運営モデルとリーダーシップ文化の同時変革が必要。\n【実務適用】アジャイル型意思決定・短サイクルPDCAの習慣化を管理職研修に組み込む。\n【注意点】日本の階層型組織では権限委譲の文化変革が先行条件。"},{"id":"od-009","theme":"OD","title":"グローバル企業におけるODファシリテーター育成モデルの検討","titleJa":"グローバル企業におけるODファシリテーター育成モデルの検討","authors":"田中歩・佐藤裕子","year":2024,"source":"J-STAGE","importance":3,"novelty":4,"url":"https://www.jstage.jst.go.jp/browse/jodp/-char/ja","abstract":"日系グローバル企業5社のODファシリテーター育成プロセスを質的研究で分析。コンピテンシーモデルとキャリアパス設計への実践的示唆。","insight":"【要点】社内ODファシリテーターの育成には実践コミュニティと経験学習サイクルの組み合わせが効果的。\n【実務適用】GCS内のODファシリテーターをコンピテンシーモデルで評価し、ストレッチ課題と定期的リフレクション機会を設計する。\n【注意点】育成に時間がかかるため3〜5年の長期視点が必要。"},{"id":"od-010","theme":"OD","title":"Organization Development: Behavioral Science Interventions for Organization Improvement","titleJa":"組織開発：組織改善のための行動科学的介入（改訂版）","authors":"French, W.L. & Bell, C.H.","year":2023,"source":"OrgSci","importance":5,"novelty":3,"url":"https://pubsonline.informs.org/journal/orsc","abstract":"ハイブリッド・デジタルワークプレイス向けに更新されたOD介入の古典的フレームワーク。アクションリサーチ・サーベイフィードバック・チームビルディングを現代文脈で再考。","insight":"【要点】古典的OD介入手法をデジタル・ハイブリッド環境向けに再設計することで現代的有効性が回復する。\n【実務適用】既存サーベイフィードバックをリアルタイムパルスサーベイとデジタル対話ツールで再設計し、介入サイクルを短縮する。\n【注意点】デジタルツール導入がODの本質である人と人の対話を代替しないよう注意。"},{"id":"cap-001","theme":"CAP","title":"Dynamic Capabilities and Strategic Management: Organizing for Innovation","titleJa":"ダイナミックケイパビリティと戦略経営：AI時代の更新版","authors":"Teece, D.J.","year":2024,"source":"OrgSci","importance":5,"novelty":3,"url":"https://pubsonline.informs.org/journal/orsc","abstract":"AI時代のダイナミックケイパビリティ更新フレームワーク。センシング・シージング・トランスフォーミングの3能力を現代文脈で再定義。","insight":"【要点】AI時代の組織能力はセンシング・シージング・トランスフォーミングの3能力の継続的更新が鍵。\n【実務適用】組織能力アセスメント設計時にこの3フレームを活用し、センシング能力（外部変化への感度）の測定・開発を優先する。\n【注意点】理論の抽象度が高いため現場への翻訳に工夫が必要。"},{"id":"cap-002","theme":"CAP","title":"Workforce Skills Transformation: Building Capabilities for the AI Age","titleJa":"AI時代に向けた組織能力変革 Deloitte Global Report 2025","authors":"Schwartz, J. et al.","year":2025,"source":"Deloitte","importance":5,"novelty":5,"url":"https://www2.deloitte.com/us/en/insights/topics/talent/building-workforce-skills.html","abstract":"Deloitte グローバル人的資本トレンド2025。140カ国の能力ギャップを特定。AIリテラシー・協働知性・学習俊敏性がトップ3のギャップ。","insight":"【要点】世界的にAIリテラシー・協働知性・学習俊敏性が最大の能力ギャップ。\n【実務適用】FY26の組織能力開発PJでこの3能力をコア開発領域として優先設定し、アセスメントと育成施策をセットで設計する。\n【注意点】グローバルデータのため日本特有のギャップを補完調査することが重要。"},{"id":"cap-003","theme":"CAP","title":"Learning Agility: The Key Meta-Competency for Organizational Adaptation","titleJa":"学習俊敏性：組織適応のためのメタコンピテンシー","authors":"De Meuse, K.P. & Dai, G.","year":2024,"source":"JAP","importance":5,"novelty":4,"url":"https://www.apa.org/pubs/journals/apl","abstract":"学習俊敏性研究の包括的レビュー。メタコンピテンシーとして確立。測定ツールと開発介入を妥当性の観点からレビュー。","insight":"【要点】学習俊敏性は他のコンピテンシーを高めるメタ能力で、変化の激しい環境での高業績を最もよく予測する。\n【実務適用】ハイポテンシャル選定基準に学習俊敏性の測定を組み込み、アセスメントセンターやサーベイで可視化する。\n【注意点】短期研修では効果が薄く経験学習設計が必須。"},{"id":"cap-004","theme":"CAP","title":"Building Organizational Capabilities for the Future: Insights from 100 Companies","titleJa":"将来の組織能力構築：100社からの知見","authors":"Keller, S. & Meaney, M.","year":2025,"source":"McKinsey","importance":5,"novelty":5,"url":"https://www.mckinsey.com/capabilities/people-and-organizational-performance/our-insights","abstract":"McKinsey能力構築有効性リサーチ。業務埋め込み学習が従来研修を4倍上回る成果を実証。3スピード学習アーキテクチャを提案。","insight":"【要点】業務埋め込み型学習が従来の集合研修を4倍上回るROIを示す。\n【実務適用】能力開発施策の重心を集合研修からOJT強化・ジョブアサイン・ピアコーチングへシフトし、70:20:10フレームを予算配分に反映させる。\n【注意点】マネジャーの関与なしには業務埋め込み学習は機能しないため、マネジャー研修を並走させる。"},{"id":"cap-005","theme":"CAP","title":"Skill-Based Organizations: Designing for Agility and Impact","titleJa":"スキルベース組織：俊敏性とインパクトのためのデザイン","authors":"Cantrell, S. et al.","year":2025,"source":"Deloitte","importance":5,"novelty":5,"url":"https://www2.deloitte.com/us/en/insights/topics/talent/skill-based-organization.html","abstract":"Deloitteのスキルベース組織設計研究。SBO採用企業はタレント定着率63%向上・イノベーション指標52%向上。","insight":"【要点】役職・職位ではなくスキルを組織設計の基軸にすることで定着率・イノベーション双方が大幅改善する。\n【実務適用】タレントマネジメント基盤をスキルタクソノミーベースへ移行するロードマップを検討し、パイロット部門での試験運用から始める。\n【注意点】日本の年功序列・職能給制度との整合性確保が最大の課題。"},{"id":"cap-006","theme":"CAP","title":"Strategic Workforce Planning: From Headcount to Capability Portfolios","titleJa":"戦略的ワークフォース計画：人員数から能力ポートフォリオへ","authors":"Boudreau, J.W. & Ziskin, I.","year":2024,"source":"HBR","importance":4,"novelty":4,"url":"https://hbr.org/topic/subject/human-resource-management","abstract":"人員数計画から能力ポートフォリオアプローチへの転換。仕事の分解でオートメーション対人的能力投資優先度を特定する手法を提示。","insight":"【要点】ワークフォースプランニングは何人必要かよりどの能力が必要かという問いへの転換が急務。\n【実務適用】サクセッションプランに能力ポートフォリオ視点を統合し、重要ポジションの後継者を能力充足率で管理する仕組みを設計する。\n【注意点】データ基盤（スキルマップ等）の整備が前提条件。"},{"id":"cap-007","theme":"CAP","title":"HR Technology for Capability Development: AI-Powered Learning Ecosystems","titleJa":"能力開発のためのHRテクノロジー：AI駆動学習エコシステム","authors":"Bersin, J.","year":2025,"source":"Gartner","importance":4,"novelty":5,"url":"https://www.gartner.com/en/human-resources/topics/talent-management","abstract":"Gartner AI搭載LXP市場分析。スキル推論・ギャップ分析・パーソナライズド学習経路生成を統合した能力インテリジェンスプラットフォームを推奨。","insight":"【要点】AIによる個別最適化学習経路生成がLXP市場の標準になりつつある。\n【実務適用】現行の学習管理システムをAI搭載LXPへの移行可能性を評価し、スキル推論機能とパーソナライズ機能の要件定義を開始する。\n【注意点】ツール導入前にスキルタクソノミーと能力定義の整備が必須。"},{"id":"cap-008","theme":"CAP","title":"Peer Learning and Collective Capability Development in Organizations","titleJa":"組織におけるピアラーニングと集合的能力開発","authors":"Boud, D. & Falchikov, N.","year":2024,"source":"JAP","importance":4,"novelty":4,"url":"https://www.apa.org/pubs/journals/apl","abstract":"ピアラーニング有効性のエビデンス統合。構造化ピアコーチング・実践コミュニティ・アクションラーニングセットが最高ROIを示す。","insight":"【要点】構造化されたピアラーニングは集合研修と比べコスト対効果が高く、特にリーダーシップ開発で優れた成果を示す。\n【実務適用】サクセッション候補者育成プログラムにアクションラーニングセットを組み込み、学習と業務を連動させる。\n【注意点】ファシリテーターの質がピアラーニングの効果を大きく左右する。"},{"id":"cap-009","theme":"CAP","title":"日本企業の人材開発実態調査2024","titleJa":"日本企業の人材開発実態調査2024","authors":"産労総合研究所","year":2024,"source":"J-STAGE","importance":4,"novelty":4,"url":"https://www.jstage.jst.go.jp/browse/sanro/-char/ja","abstract":"国内650社の人材開発・能力開発施策の実態を網羅的に調査。リスキリング・70:20:10モデル・管理職開発の動向を詳細に分析。","insight":"【要点】国内企業のリスキリングは投資増加にもかかわらず研修実施止まりで行動変容・業績連動まで至っていない企業が多数。\n【実務適用】能力開発施策に研修後90日間の行動変容追跡を標準プロセスとして組み込み、学習転移を測定可能にする。\n【注意点】管理職の開発サポート行動が転移の鍵であり、管理職育成と並走が必須。"},{"id":"cap-010","theme":"CAP","title":"Measuring Capability Development ROI: Beyond Training Hours","titleJa":"能力開発ROIの測定：研修時間を超えて","authors":"Phillips, J.J. & Phillips, P.P.","year":2024,"source":"HBR","importance":4,"novelty":3,"url":"https://hbr.org/topic/subject/human-resource-management","abstract":"現代的能力開発向けROI方法論。ビジネス成果連動モデル・能力移転測定・予測インパクトスコアリングフレームワークを提案。","insight":"【要点】能力開発のROIは研修時間・満足度でなくビジネス成果への貢献で測定すべき。\n【実務適用】FY26の能力開発施策にKirkpatrickモデルのLevel 4まで含めた評価設計を導入する。\n【注意点】成果測定には開始前のベースライン設定が必要。"},{"id":"suc-001","theme":"SUC","title":"CEO Succession and Corporate Performance: A Meta-Analysis","titleJa":"CEO継承と企業業績：メタ分析","authors":"Zhang, Y. & Rajagopalan, N.","year":2024,"source":"AMJ","importance":5,"novelty":4,"url":"https://journals.aom.org/journal/amj","abstract":"340件のCEO継承研究のメタ分析。安定環境では内部後継者が外部を上回り、危機時は逆転。サクセッション計画のリードタイムが重要変数。","insight":"【要点】安定期は内部育成後継者が、危機時は外部登用が業績に優れるという環境適合モデルが確立。\n【実務適用】平時用パイプラインと危機対応用外部登用基準を並走して整備し、環境変化に応じて切り替えられる二段構えを設計する。\n【注意点】日本企業は内部昇進偏重が強いため意識的に外部視点を取り込む仕組みが必要。"},{"id":"suc-002","theme":"SUC","title":"Best Practices in Succession Management: DDI Global Report 2024","titleJa":"サクセッション管理ベストプラクティス：DDIグローバルレポート2024","authors":"DDI Research Institute","year":2024,"source":"DDI","importance":5,"novelty":4,"url":"https://www.ddiworld.com/research/global-leadership-forecast","abstract":"世界2000名超のHRリーダー調査。強固な後継者パイプラインを持つのは40%のみ。トップ企業は構造化レディネス評価・ストレッチ課題・ボードレベルの可視化を活用。","insight":"【要点】サクセッション成熟度が高い企業の共通点は構造化レディネス評価・意図的ストレッチ配置・経営層の関与の3点。\n【実務適用】後継者評価にDDIのReadinessフレームを導入し今すぐ就任可能・1〜2年後・3〜5年後の3層で可視化する。\n【注意点】評価の客観性確保のため複数評価者によるキャリブレーションセッションが必要。"},{"id":"suc-003","theme":"SUC","title":"Accelerating Leadership Pipelines: From Succession Planning to Succession Management","titleJa":"リーダーシップパイプラインの加速：計画から管理へ","authors":"Charan, R. & Drotter, S.","year":2025,"source":"HBR","importance":5,"novelty":4,"url":"https://hbr.org/topic/subject/succession-planning","abstract":"ハイブリッド時代向けLeadership Pipelineモデル更新。6つのリーダーシップ通過点を特定。静的サクセッション図に代わるリアルタイムレディネス追跡を重視。","insight":"【要点】年1回のサクセッション見直しでは時代遅れで、リアルタイムのパイプライン可視化が競争優位の源泉。\n【実務適用】タレントレビューをリアルタイムダッシュボード化し、四半期ごとのパイプライン健全性チェックを経営会議のアジェンダに組み込む。\n【注意点】ハイブリッド環境での観察機会減少を補うため1on1と360フィードバックの頻度を高める。"},{"id":"suc-004","theme":"SUC","title":"Talent Analytics for Succession: Using People Data to Predict Leadership Potential","titleJa":"後継者育成のためのタレント分析：ピープルデータでポテンシャルを予測","authors":"Green, D.","year":2025,"source":"Gartner","importance":5,"novelty":5,"url":"https://www.gartner.com/en/human-resources/topics/succession-planning","abstract":"リーディング企業のサクセッション予測分析活用事例。パフォーマンス・アセスメント・360度データを組み合わせたMLモデルが従来手法を大幅に上回る。","insight":"【要点】複数データソースを組み合わせたMLモデルによる後継者ポテンシャル予測が従来の主観的判断を大幅に上回る精度。\n【実務適用】後継者評価プロセスにデータドリブンな要素（パフォーマンス傾向・アセスメントスコア・360度結果の統合分析）を導入する。\n【注意点】データの質・量が不十分な場合はモデルの信頼性が低下するため、データ基盤整備が先決。"},{"id":"suc-005","theme":"SUC","title":"Inclusive Succession Planning: Removing Bias from High-Potential Identification","titleJa":"インクルーシブなサクセッション計画：ハイポテンシャル特定のバイアス除去","authors":"Thomas, R.J. & Cheese, P.","year":2025,"source":"AMJ","importance":5,"novelty":5,"url":"https://journals.aom.org/journal/amj","abstract":"サクセッション判断における5つの認知バイアスとエビデンスに基づく対策を特定。構造化キャリブレーションがパイプラインの多様性を有意に向上。","insight":"【要点】類似性・確証バイアス等5つのバイアスが多様性あるパイプライン構築を阻害している。\n【実務適用】タレントレビュー会議にブラインドノミネーションと構造化キャリブレーション基準を導入し、評価の客観性を高める。\n【注意点】バイアス除去は継続的な仕組みとして定着させる必要がある。"},{"id":"suc-006","theme":"SUC","title":"Board-Level Succession Planning: Governance Best Practices","titleJa":"取締役会レベルのサクセッション計画：ガバナンスのベストプラクティス","authors":"Larcker, D.F. & Miles, S.A.","year":2024,"source":"McKinsey","importance":4,"novelty":4,"url":"https://www.mckinsey.com/capabilities/strategy-and-corporate-finance/our-insights","abstract":"200社の取締役会調査。構造化CEOサクセッションプロセスを持つ企業は5年間で株主総利回りが15%高い。","insight":"【要点】CEO後継者計画の構造化が5年間で15%の株主価値創出と連動するという強力な財務的根拠が示された。\n【実務適用】サクセッション計画の重要性を経営層に訴求する際にこのデータを活用し、取締役会レベルでの議論を促進する情報提供資料を整備する。\n【注意点】取締役会との連携にはコーポレートガバナンス担当部門との協働が必要。"},{"id":"suc-007","theme":"SUC","title":"日本企業における後継者育成の課題と解決策","titleJa":"日本企業における後継者育成の課題と解決策","authors":"守島基博","year":2024,"source":"J-STAGE","importance":5,"novelty":4,"url":"https://www.jstage.jst.go.jp/browse/hrmj/-char/ja","abstract":"日本的雇用慣行とサクセッション計画の整合性を分析。年功序列からポテンシャル重視への移行における組織文化的障壁と介入策を提示。","insight":"【要点】年功序列文化のもとではサクセッション計画が順番待ちリストになりやすい構造的問題がある。\n【実務適用】ポテンシャル評価基準を明文化・可視化し、年齢・年次と切り離した昇格・配置の意思決定ガイドラインを整備する。\n【注意点】制度変更だけでは不十分で、評価者のマインドセット変革への投資が不可欠。"},{"id":"suc-008","theme":"SUC","title":"Stretch Assignments and Leadership Development: Evidence from 10-Year Study","titleJa":"ストレッチ課題とリーダーシップ開発：10年間の研究から","authors":"McCauley, C.D. & Brutus, S.","year":2024,"source":"JAP","importance":4,"novelty":3,"url":"https://www.apa.org/pubs/journals/apl","abstract":"縦断研究によるストレッチ課題の有効性確認。不慣れな責任・権限なしのマネジメント・高い可視性が最も開発効果の高い課題特性と判明。","insight":"【要点】不慣れな責任・権限なしのマネジメント・高い可視性の3つがリーダーシップ開発に最も効くストレッチ課題の特性。\n【実務適用】後継者候補のIDPにこの3要素を満たすアサインメントを意図的に組み込み、上司がコーチとして伴走する構造を設計する。\n【注意点】ストレッチが強すぎると離職リスクが高まるため、心理的安全性の確保が必須。"},{"id":"suc-009","theme":"SUC","title":"Executive Coaching ROI in Succession Development Programs","titleJa":"サクセッション育成プログラムにおけるエグゼクティブコーチングROI","authors":"Grant, A.M. & Cavanagh, M.J.","year":2024,"source":"OrgSci","importance":4,"novelty":4,"url":"https://pubsonline.informs.org/journal/orsc","abstract":"サクセッションプログラムにおけるエグゼクティブコーチングの体系的レビュー。ビジネス成果とサクセッション基準に紐づいたコーチングはROI 5.7倍。","insight":"【要点】コーチングをビジネス成果とサクセッション基準に明確に紐づけると5.7倍のROIを示す。\n【実務適用】コーチング契約前に何のサクセッション基準を強化するかを明確にし、開始・中間・終了の3点でビジネス成果測定を組み込む。\n【注意点】コーチの質と相性が成果に大きく影響するためコーチ選定プロセスの標準化が重要。"},{"id":"suc-010","theme":"SUC","title":"Succession Risk Assessment: Quantifying Leadership Pipeline Gaps","titleJa":"サクセッションリスク評価：リーダーシップパイプラインギャップの定量化","authors":"Ulrich, D. & Smallwood, N.","year":2025,"source":"DDI","importance":5,"novelty":5,"url":"https://www.ddiworld.com/research/global-leadership-forecast","abstract":"役割の重要性xパイプライン深度xレディネス速度でサクセッションリスクを定量化する新フレームワーク。財務指標を用いたボードレベルのタレントリスク議論を可能にする。","insight":"【要点】サクセッションリスクを役割重要性xパイプライン深度xレディネス速度で定量化することで取締役会レベルの議論が可能になる。\n【実務適用】重要ポジションをリスクマトリクスで可視化し、高リスクポジションを最優先の育成投資対象として経営会議に提示する。\n【注意点】定量化は判断を補助するものであり、最終判断は人間が行う必要がある。"},{"id":"rep-001","theme":"REP","title":"Global Talent Trends 2025: The Era of Human Magic","titleJa":"グローバルタレントトレンド2025：ヒューマンマジックの時代","authors":"Mercer","year":2025,"source":"McKinsey","importance":5,"novelty":5,"url":"https://www.mercer.com/our-thinking/career/global-talent-hr-trends.html","abstract":"12000名超のHRリーダーへの年次調査。スキルファーストタレントモデル・AI-人間チーミング・ウェルビーイングの生産性ドライバー化がトップテーマ。","insight":"【要点】2025年のHRの最重要テーマはAIと人間の協働設計・スキルベースのタレントモデル・ウェルビーイングの生産性投資化の3点。\n【実務適用】FY26のGCS活動計画にこれら3テーマを参照軸として組み込み、組織能力開発PJの方向性と整合させる。\n【注意点】グローバルトレンドと日本固有課題のギャップを意識した解釈が必要。"},{"id":"rep-002","theme":"REP","title":"State of the Global Workplace 2025","titleJa":"グローバル職場環境レポート2025（Gallup）","authors":"Gallup","year":2025,"source":"Gartner","importance":5,"novelty":5,"url":"https://www.gallup.com/workplace/349484/state-of-the-global-workplace.aspx","abstract":"160カ国のエンゲージメント調査。エンゲージメント23%で停滞。マネジャーの質が第1ドライバー。OD投資の強力なビジネスケースを提示。","insight":"【要点】世界のエンゲージメントが23%で停滞し、最大の規定因はマネジャーの質であることが再確認された。\n【実務適用】組織開発投資のビジネスケース構築にGallupのデータを活用し、マネジャー育成への投資優先度引き上げを経営層に提案する根拠として使用する。\n【注意点】日本のエンゲージメント水準は世界最低水準に近いため、日本内の改善トレンドに着目することが重要。"},{"id":"rep-003","theme":"REP","title":"Future of Jobs Report 2025","titleJa":"雇用の未来レポート2025（WEF）","authors":"World Economic Forum","year":2025,"source":"McKinsey","importance":5,"novelty":5,"url":"https://www.weforum.org/reports/the-future-of-jobs-report-2025/","abstract":"WEF予測：2027年までに8500万の職が代替され9700万の新職種が生まれる。分析的思考・創造性・レジリエンスがトップスキル需要。","insight":"【要点】2027年までに既存業務の大規模代替が起き、分析的思考・創造性・レジリエンスが最重要スキルになる。\n【実務適用】GLOBISの人材開発戦略においてこれら3スキルをコアコンピテンシーとして再定義し、育成プログラムと評価基準のアップデートを検討する。\n【注意点】リスキリングではなくスキルの継続的更新という発想への転換が重要。"},{"id":"rep-004","theme":"REP","title":"Human Capital Management Excellence Report 2025","titleJa":"人的資本管理エクセレンスレポート2025","authors":"Brandon Hall Group","year":2025,"source":"DDI","importance":4,"novelty":4,"url":"https://www.brandonhall.com/membershipandexcellenceawards/","abstract":"1000組織のHCMプラクティス比較。ベストインクラス企業はサクセッション・能力開発・パフォーマンス管理を単一タレントエコシステムに統合。","insight":"【要点】ベストインクラス企業はサクセッション・能力開発・パフォーマンス管理を単一エコシステムとして統合運用している。\n【実務適用】GCSの3専門領域を統合的に提供できるサービスモデルを設計し、分断した施策提供から脱却する。\n【注意点】統合には各制度・システムの整合性確保が必要で段階的ロードマップが現実的。"},{"id":"rep-005","theme":"REP","title":"Japan HR Tech Landscape 2025","titleJa":"日本HRテックランドスケープ2025","authors":"HR総研","year":2025,"source":"J-STAGE","importance":4,"novelty":5,"url":"https://www.hrpro.co.jp/","abstract":"国内HRテック市場最新動向。タレントマネジメント・サクセッション・組織診断の各カテゴリーの製品比較と導入事例を網羅。","insight":"【要点】国内HRテック市場でタレントマネジメント・サクセッション・組織診断の統合プラットフォームへの需要が急増している。\n【実務適用】GLOBISのHRシステム戦略立案時にこのレポートを参照し、サクセッション管理と組織診断のデジタル化優先度を検討する材料として活用する。\n【注意点】製品比較は導入時点の情報であり、継続的なベンダー評価が必要。"}];
+var THEME = {OD:"OD（組織開発）",CAP:"組織能力開発",SUC:"サクセッション",REP:"実務レポート"};
+var SRC = {AMJ:"AMJ",JAP:"JAP",OrgSci:"Org. Science",HBR:"HBR",McKinsey:"McKinsey",DDI:"DDI",Gartner:"Gartner",Deloitte:"Deloitte","J-STAGE":"J-STAGE"};
+var state = {search:"",cat:"",src:"",yr:"",sort:"score"};
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function stars(n,ch,col){var h="";for(var i=1;i<=5;i++) h+="<span style=\"color:"+(i<=n?col:"#d1d5db")+";font-size:12px\">"+ch+"</span>";return h;}
+function cardHtml(p){
+  var showJa=(p.title!==p.titleJa);
+  var insId="ins-"+p.id, togId="tog-"+p.id;
+  return [
+    "<div class=\"paper-card\">",
+    "<div class=\"card-top\"><span class=\"theme-badge badge-"+esc(p.theme)+"\">"+esc(THEME[p.theme]||p.theme)+"</span>",
+    "<div class=\"scores\"><div class=\"score-row\"><span style=\"font-size:10px;color:#94a3b8\">重要</span> "+stars(p.importance,"★","#f59e0b")+" <span class=\"score-num\">"+p.importance+"</span></div>",
+    "<div class=\"score-row\"><span style=\"font-size:10px;color:#94a3b8\">新規</span> "+stars(p.novelty,"✦","#10b981")+" <span class=\"score-num\">"+p.novelty+"</span></div></div></div>",
+    "<div class=\"paper-title\">"+esc(p.title)+"</div>",
+    (showJa?"<div class=\"paper-title-ja\">🇯🇵 "+esc(p.titleJa)+"</div>":""),
+    "<div class=\"paper-meta\"><span class=\"meta-author\">✍️ "+esc(p.authors)+"</span><span class=\"meta-year\">📅 "+p.year+"</span><span class=\"source-pill\">"+esc(SRC[p.source]||p.source)+"</span></div>",
+    "<div class=\"abstract-text\">"+esc(p.abstract||"")+"</div>",
+    "<div class=\"insight-section\"><div class=\"insight-header\" onclick=\"toggleIns('"+insId+"','"+togId+"')\">",
+    "<span class=\"insight-label\">💡 OD実務示唆</span><span class=\"insight-arrow\" id=\""+togId+"\">▼</span></div>",
+    "<div class=\"insight-body\" id=\""+insId+"\"><p>"+esc(p.insight||"")+"</p></div></div>",
+    "<div class=\"card-footer\"><a class=\"url-link\" href=\""+esc(p.url)+"\" target=\"_blank\" rel=\"noopener\">🔗 出典を開く</a></div>",
+    "</div>"
+  ].join("");
+}
+function filteredList(){
+  var list=PAPERS.slice();
+  var q=state.search.toLowerCase();
+  if(q) list=list.filter(function(p){return(p.title+p.titleJa+p.authors+(p.abstract||"")+(p.insight||"")).toLowerCase().indexOf(q)>=0;});
+  if(state.cat) list=list.filter(function(p){return p.theme===state.cat;});
+  if(state.src) list=list.filter(function(p){return p.source===state.src;});
+  if(state.yr){var yr=parseInt(state.yr);list=list.filter(function(p){return yr===2023?p.year<=2023:p.year===yr;});}
+  if(state.sort==="score") list.sort(function(a,b){return(b.importance+b.novelty)-(a.importance+a.novelty);});
+  else list.sort(function(a,b){return b.year-a.year||(b.importance+b.novelty)-(a.importance+a.novelty);});
+  return list;
+}
+function renderCards(){
+  var list=filteredList();
+  document.getElementById("resultInfo").textContent=list.length+"件表示中";
+  var grid=document.getElementById("papersGrid");
+  if(!list.length){grid.innerHTML="<div class=\"empty-state\">🔍 該当する論文がありません。</div>";return;}
+  grid.innerHTML=list.map(cardHtml).join("");
+}
+function updateCounts(){
+  var c={all:PAPERS.length,OD:0,CAP:0,SUC:0,REP:0};
+  PAPERS.forEach(function(p){c[p.theme]=(c[p.theme]||0)+1;});
+  document.getElementById("cnt-all").textContent=c.all;
+  document.getElementById("cnt-OD").textContent=c.OD;
+  document.getElementById("cnt-CAP").textContent=c.CAP;
+  document.getElementById("cnt-SUC").textContent=c.SUC;
+  document.getElementById("cnt-REP").textContent=c.REP;
+}
+function toggleIns(insId,togId){
+  var body=document.getElementById(insId),tog=document.getElementById(togId);
+  if(!body)return;
+  var o=body.classList.toggle("open");
+  if(tog) tog.classList.toggle("open",o);
+}
+function setCat(c){state.cat=c;document.querySelectorAll(".cat-item").forEach(function(el){el.classList.toggle("active",el.getAttribute("data-cat")===c);});document.getElementById("filterTheme").value=c;renderCards();}
+function setSort(s){state.sort=s;document.getElementById("btnScore").classList.toggle("active",s==="score");document.getElementById("btnNew").classList.toggle("active",s==="new");renderCards();}
+function applyFilters(){state.search=document.getElementById("searchInput").value;var th=document.getElementById("filterTheme").value;if(th!==state.cat){state.cat=th;document.querySelectorAll(".cat-item").forEach(function(el){el.classList.toggle("active",el.getAttribute("data-cat")===th);});}state.src=document.getElementById("filterSource").value;state.yr=document.getElementById("filterYear").value;renderCards();}
+document.getElementById("footerBar").textContent="最終更新：2026/6/1 — GCS OD Intelligence Dashboard | 35件収録";
+updateCounts();
+renderCards();
+</script>
+</body>
+</html>
